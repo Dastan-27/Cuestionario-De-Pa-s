@@ -6,7 +6,7 @@ import Congratulations from "./Congratulations";
 function Quiz() {
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [score, setScore] = useState(0);
+  const [userAnswers, setUserAnswers] = useState({}); // { questionIndex: selectedOption }
   const [showResult, setShowResult] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,9 +18,9 @@ function Quiz() {
       
       const allCountries = await getAllCountries();
       
-      // Filtrar países que tienen capital y nombre
+      // Filtrar países que tienen bandera y nombre
       const validCountries = allCountries.filter(
-        (c) => c.capital && c.capital.length > 0 && c.name && c.name.common
+        (c) => c.flags && c.flags.png && c.name && c.name.common
       );
 
       // Mezclar y tomar 10 países
@@ -29,30 +29,29 @@ function Quiz() {
 
       // Generar opciones para cada pregunta
       const generatedQuestions = selectedCountries.map((country) => {
-        const correctCapital = country.capital[0];
+        const correctCountryName = country.name.common;
         
-        // Obtener 3 capitales incorrectas de otros países al azar
-        const otherCountries = validCountries.filter(c => c.name.common !== country.name.common);
+        // Obtener 3 nombres de países incorrectos al azar
+        const otherCountries = validCountries.filter(c => c.name.common !== correctCountryName);
         const shuffledOthers = [...otherCountries].sort(() => 0.5 - Math.random());
-        const incorrectCapitals = shuffledOthers.slice(0, 3).map(c => c.capital[0]);
+        const incorrectNames = shuffledOthers.slice(0, 3).map(c => c.name.common);
 
         // Unir opciones y mezclar
-        const options = [correctCapital, ...incorrectCapitals].sort(() => 0.5 - Math.random());
+        const options = [correctCountryName, ...incorrectNames].sort(() => 0.5 - Math.random());
 
         return {
-          countryName: country.name.common,
-          flagUrl: country.flags?.png,
+          flagUrl: country.flags.png,
           options,
-          correctAnswer: correctCapital
+          correctAnswer: correctCountryName
         };
       });
 
       setQuestions(generatedQuestions);
       setCurrentQuestion(0);
-      setScore(0);
+      setUserAnswers({});
       setShowResult(false);
     } catch (err) {
-      setError("Error al cargar los datos. Por favor, intenta nuevamente.");
+      setError("Error loading data. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -62,18 +61,18 @@ function Quiz() {
     fetchAndGenerateQuiz();
   }, []);
 
-  const handleAnswer = (isCorrect) => {
-    if (isCorrect) {
-      setScore(score + 1);
-    }
-  };
+  const handleAnswer = (option) => {
+    if (userAnswers[currentQuestion]) return; // Ya respondida
 
-  const handleNextQuestion = () => {
-    const nextQ = currentQuestion + 1;
-    if (nextQ < questions.length) {
-      setCurrentQuestion(nextQ);
-    } else {
-      setShowResult(true);
+    const newAnswers = { ...userAnswers, [currentQuestion]: option };
+    setUserAnswers(newAnswers);
+
+    // Revisar si ya respondió todas
+    if (Object.keys(newAnswers).length === 10) {
+      // Esperar 1.5 segundos para mostrar el resultado para que el usuario vea si acertó la última
+      setTimeout(() => {
+        setShowResult(true);
+      }, 1500);
     }
   };
 
@@ -83,38 +82,70 @@ function Quiz() {
 
   if (loading) {
     return (
-      <div className="quiz-container loading-container">
+      <div className="quiz-card loading-container">
         <div className="loader"></div>
-        <p>Cargando preguntas...</p>
+        <p>Loading...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="quiz-container error-container">
+      <div className="quiz-card error-container">
         <p>{error}</p>
-        <button onClick={fetchAndGenerateQuiz} className="btn-primary">Reintentar</button>
+        <button onClick={fetchAndGenerateQuiz} className="btn-play-again">Retry</button>
       </div>
     );
   }
 
+  // Calcular puntaje
+  let score = 0;
+  Object.keys(userAnswers).forEach((index) => {
+    if (userAnswers[index] === questions[index].correctAnswer) {
+      score++;
+    }
+  });
+
   return (
-    <div className="quiz-container fade-in">
-      {!showResult ? (
+    <div className="quiz-wrapper">
+      <div className="quiz-card fade-in">
+        {/* Navigation Bar */}
+        <div className="navigation-bar">
+          {questions.map((_, index) => {
+            const isCurrent = currentQuestion === index;
+            const isAnswered = userAnswers[index] !== undefined;
+            
+            let navClass = "nav-circle";
+            if (isCurrent) navClass += " active";
+            else if (isAnswered) navClass += " answered";
+
+            return (
+              <button 
+                key={index} 
+                className={navClass}
+                onClick={() => setCurrentQuestion(index)}
+              >
+                {index + 1}
+              </button>
+            );
+          })}
+        </div>
+
         <Question
           questionData={questions[currentQuestion]}
-          currentIndex={currentQuestion}
-          totalQuestions={questions.length}
+          userAnswer={userAnswers[currentQuestion]}
           onAnswer={handleAnswer}
-          onNext={handleNextQuestion}
         />
-      ) : (
-        <Congratulations
-          score={score}
-          totalQuestions={questions.length}
-          onPlayAgain={handlePlayAgain}
-        />
+      </div>
+
+      {showResult && (
+        <div className="modal-overlay fade-in">
+          <Congratulations
+            score={score}
+            totalQuestions={questions.length}
+            onPlayAgain={handlePlayAgain}
+          />
+        </div>
       )}
     </div>
   );

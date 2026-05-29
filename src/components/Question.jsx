@@ -1,86 +1,51 @@
-import { useState, useEffect } from "react";
-
-function Question({ questionData, currentIndex, totalQuestions, onAnswer, onNext }) {
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [isAnswered, setIsAnswered] = useState(false);
-
-  // Reset state when question changes
-  useEffect(() => {
-    setSelectedOption(null);
-    setIsAnswered(false);
-  }, [questionData]);
-
-  const { countryName, flagUrl, options, correctAnswer } = questionData;
+function Question({ questionData, userAnswer, onAnswer }) {
+  const { flagUrl, options, correctAnswer } = questionData;
+  const isAnswered = userAnswer !== undefined;
 
   const handleOptionClick = (option) => {
-    if (isAnswered) return;
-    
-    setSelectedOption(option);
-    setIsAnswered(true);
-    
-    const isCorrect = option === correctAnswer;
-    onAnswer(isCorrect);
+    if (!isAnswered) {
+      onAnswer(option);
+    }
   };
 
-  const getOptionClass = (option) => {
-    if (!isAnswered) return "option-btn";
+  const getOptionState = (option) => {
+    if (!isAnswered) return { className: "option-btn", icon: null };
     
     if (option === correctAnswer) {
-      return "option-btn correct";
+      // Siempre mostrar la correcta con check si ya se respondió
+      return { className: "option-btn correct", icon: "✓" };
     }
     
-    if (option === selectedOption && option !== correctAnswer) {
-      return "option-btn incorrect";
+    if (option === userAnswer && option !== correctAnswer) {
+      // Fue la seleccionada por el usuario y es incorrecta
+      return { className: "option-btn incorrect", icon: "⊗" };
     }
     
-    return "option-btn disabled";
+    return { className: "option-btn disabled", icon: null };
   };
 
   return (
-    <div className="question-card fade-in">
-      <div className="progress-bar-container">
-        <div 
-          className="progress-bar" 
-          style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
-        ></div>
-      </div>
-      
-      <div className="question-header">
-        <span className="question-counter">
-          Pregunta {currentIndex + 1} de {totalQuestions}
-        </span>
-      </div>
-
-      <div className="question-content">
-        <h2>¿Cuál es la capital de <span className="highlight-country">{countryName}</span>?</h2>
-        
-        {flagUrl && (
-          <div className="flag-container">
-            <img src={flagUrl} alt={`Bandera de ${countryName}`} className="country-flag" />
-          </div>
-        )}
-      </div>
+    <div className="question-container fade-in" key={flagUrl}>
+      <h2 className="question-text">
+        Which country does this flag <img src={flagUrl} alt="flag" className="inline-flag" /> belong to?
+      </h2>
 
       <div className="options-grid">
-        {options.map((option, index) => (
-          <button
-            key={index}
-            className={getOptionClass(option)}
-            onClick={() => handleOptionClick(option)}
-            disabled={isAnswered}
-          >
-            {option}
-          </button>
-        ))}
+        {options.map((option, index) => {
+          const { className, icon } = getOptionState(option);
+          return (
+            <button
+              key={index}
+              className={className}
+              onClick={() => handleOptionClick(option)}
+              disabled={isAnswered}
+            >
+              <span className="option-text">{option}</span>
+              {icon && <span className="option-icon">{icon}</span>}
+            </button>
+          );
+        })}
       </div>
-
-      {isAnswered && (
-        <div className="action-container fade-in">
-          <button className="btn-primary next-btn" onClick={onNext}>
-            {currentIndex === totalQuestions - 1 ? "Ver Resultados" : "Siguiente Pregunta"}
-          </button>
-        </div>
-      )}
     </div>
   );
 }

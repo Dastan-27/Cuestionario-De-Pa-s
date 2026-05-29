@@ -1,20 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
 :root {
-  /* Color Palette */
-  --primary-color: #4f46e5;
-  --primary-hover: #4338ca;
-  --secondary-color: #10b981;
-  --danger-color: #ef4444;
-  --background-dark: #0f172a;
-  --surface-dark: #1e293b;
-  --surface-light: rgba(255, 255, 255, 0.05);
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --border-color: rgba(255, 255, 255, 0.1);
+  /* Colors based on devChallenges design */
+  --bg-color: #0b0c10;
+  --card-bg: #2f3653;
+  --btn-bg: #39496a;
+  --pink-gradient: linear-gradient(90deg, #E65895 0%, #D48074 100%);
+  --text-primary: #ffffff;
+  --text-secondary: #cccdde;
+  --correct-bg: #39496a; /* Checkmark option background stays dark or gets specific correct tint */
+  --correct-color: #60BF88;
+  --incorrect-color: #ffffff;
+  --orange: #E88C41;
   
-  /* Radii & Shadows */
-  --border-radius: 16px;
-  --box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: all 0.3s ease;
 }
 
 * {
@@ -24,10 +23,11 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  background-color: var(--background-dark);
+  font-family: 'Montserrat', sans-serif;
   color: var(--text-primary);
   min-height: 100vh;
+  /* Space background */
+  background: var(--bg-color) url('https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?q=80&w=2000&auto=format&fit=crop') center/cover no-repeat fixed;
   display: flex;
   flex-direction: column;
 }
@@ -40,46 +40,24 @@ body {
 }
 
 /* Typography */
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3 {
   font-weight: 700;
-  line-height: 1.2;
 }
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
-/* Common UI Elements */
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.6);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
+.inline-flag {
+  display: inline-block;
+  height: 1em;
+  margin: 0 0.2em;
+  vertical-align: middle;
+  border-radius: 2px;
 }
